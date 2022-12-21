@@ -1,0 +1,114 @@
+html {
+    background: purple; /* fallback color */
+    background: linear-gradient(to bottom, purple, #006600);
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+}
+
+h1, h2, p, a {
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    text-shadow: 3px 3px #ff0000;
+}
+
+h1 {
+    font-size: 5em;
+    margin-top: 20px;
+}
+
+h2 {
+    font-size: 3em;
+}
+
+p {
+    font-size: 2em;
+}
+
+.column {
+    float: left;
+	padding: 50px;
+}
+
+.left {
+    width: 36%;
+}
+
+.right {
+    width: 64%;
+}
+
+.vertical-center {
+    position: absolute;
+	top: 50%;
+    -ms-transform: translateY(-50%);
+	transform: translateY(-50%);
+}
+
+.horver-center {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+#btn_play {
+    font-size: 4em;
+    padding-top: 15px;
+    padding-bottom: 50px;
+}
+
+#btn_back {
+	margin-top: 15px;
+	margin-left: 15px;
+}
+
+#notification {
+	text-align: center;
+}
+
+#size {
+    min-width: 300px;
+}
+
+#grids {
+    margin: 4px;
+    padding: 5px;
+    background: #2b002c;
+	height: 600px;
+	width: 600px;
+    border: 1px solid #000000;
+	border-radius: 7px;
+	text-align: center;
+}
+
+.row {
+    display: flex;
+}
+
+.grid {
+    border-radius: 5px;
+	flex: 1;
+	height: 73px;
+}
+
+.black {
+	background: #2b002c;
+    border: 1px solid #000000;
+}
+
+.white {
+	background: #FFFFFF;
+    border: 1px solid #000000;
+}
+
+.grid:hover {
+	background: #006600;
+    cursor: pointer;
+}
+
+.regulate-size {
+	height: 100%;
+}
