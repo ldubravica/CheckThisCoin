@@ -1,7 +1,7 @@
-var socket = new WebSocket("ws://localhost:3000");
+const socket = new WebSocket("ws://localhost:3000");
 
 socket.onopen = function(){
-	socket.send("splash:info");
+	socket.send("screen:splash");
 };
 
 socket.onmessage = function(event){

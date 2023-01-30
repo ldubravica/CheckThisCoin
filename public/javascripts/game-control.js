@@ -1,55 +1,55 @@
-var holding = false;
-var originalPosition = 0;
-var socket = new WebSocket("ws://localhost:3000");
+let holding = false;
+let originalPosition = 0;
+const socket = new WebSocket("ws://localhost:3000");
 
-var playerid = -1;
-var gameid = -1;
-var playermove = false;
-var bit_player = false;
-var board = "1010101001010101101010100000000000000000020202022020202002020202";
+let playerID = -1;
+let gameID = -1;
+let playerMove = false;
+let bitPlayer = false;
+let board = "1010101001010101101010100000000000000000020202022020202002020202";
 
 function setUpBoard() {
 	for (let i = 0; i < 64; i++) {
-		if(board.charAt(i) == "0")
+		if (board.charAt(i) == "0")
 			document.getElementById("b" + i).src = "images/none.png";
-		else if(board.charAt(i) == "1")
+		else if (board.charAt(i) == "1")
 			document.getElementById("b" + i).src = "images/coin_bit.png";
-		else if(board.charAt(i) == "2")
+		else if (board.charAt(i) == "2")
 			document.getElementById("b" + i).src = "images/coin_usd.png";
 	//	queen stuff
-		else if(board.charAt(i) == "3")
+		else if (board.charAt(i) == "3")
 			document.getElementById("b" + i).src = "images/coin_bit_queen.png";
-		else if(board.charAt(i) == "4")
+		else if (board.charAt(i) == "4")
 			document.getElementById("b" + i).src = "images/coin_usd_queen.png";
 	}
 }
 
-function move_piece(clicked_id) {
-	var selectedPosition = clicked_id.substring(1,3);
-	if (playermove && holding == false && (board.charAt(selectedPosition) == (bit_player ? "1" : "2") || board.charAt(selectedPosition) == (bit_player ? "3" : "4"))) {
+function movePiece(clickedID) {
+	console.log("ClickedXXX");
+	const selectedPosition = clickedID.substring(1,3);
+	if (playerMove && holding == false && (board.charAt(selectedPosition) == (bitPlayer ? "1" : "2") || board.charAt(selectedPosition) == (bitPlayer ? "3" : "4"))) {
 		originalPosition = selectedPosition;
 		holding = true;
 		document.getElementById("d"+originalPosition).style.background = "#006600";
 	}
-	else if (playermove && holding == true && board.charAt(selectedPosition) == "0" && valid_move(originalPosition, selectedPosition)) {
+	else if (playerMove && holding == true && board.charAt(selectedPosition) == "0" && valid_move(originalPosition, selectedPosition)) {
 	// queen stuff
-		if(bit_player && selectedPosition > 55)
+		if (bitPlayer && selectedPosition > 55)
 			board = replaceChar(board, originalPosition, "3");
-		else if(!bit_player && selectedPosition < 8)
+		else if (!bitPlayer && selectedPosition < 8)
 			board = replaceChar(board, originalPosition, "4");
 
 		board = replaceChar(board, selectedPosition, board[originalPosition]);
 		board = replaceChar(board, originalPosition, "0");
 
 		setUpBoard();
-		document.getElementById("d"+originalPosition).style.background = "#2b002c";
+		document.getElementById("d" + originalPosition).style.background = "#2b002c";
 
 		holding = false;
-		playermove = false;
+		playerMove = false;
 
-		if (!gameOver())
-		{
-			socket.send("board:" + gameid + ":" + playerid + ":" + board);
+		if (!gameOver()) {
+			socket.send("board:" + gameID + ":" + playerID + ":" + board);
 		}
 	}
 	else {
@@ -63,14 +63,20 @@ function move_piece(clicked_id) {
 
 function valid_move(start_pos, end_pos) { // ADD RECURSIVE CALL FOR EATING or allow user to move his piece again only if he is eating again, implement later w/ networking
 	if (board.charAt(start_pos) == "1")
-		if(end_pos - start_pos < 10) return valid_move_bit(parseInt(start_pos), parseInt(end_pos))
-		else return valid_eat_bit(parseInt(start_pos), parseInt(end_pos));
+		if (end_pos - start_pos < 10) 
+			return valid_move_bit(parseInt(start_pos), parseInt(end_pos))
+		else 
+			return valid_eat_bit(parseInt(start_pos), parseInt(end_pos));
 	else if (board.charAt(start_pos) == "2")
-		if(start_pos - end_pos < 10) return valid_move_usd(parseInt(start_pos), parseInt(end_pos))
-		else return valid_eat_usd(parseInt(start_pos), parseInt(end_pos));
+		if (start_pos - end_pos < 10) 
+			return valid_move_usd(parseInt(start_pos), parseInt(end_pos))
+		else 
+			return valid_eat_usd(parseInt(start_pos), parseInt(end_pos));
 	else if (board.charAt(start_pos) == "3" || board.charAt(start_pos) == "4") { //	<<------	added queen property
-		if(Math.abs(end_pos - start_pos) < 10) return valid_move_bit(parseInt(start_pos), parseInt(end_pos)) || valid_move_usd(parseInt(start_pos), parseInt(end_pos));	// queen move
-		else return valid_eat_queen(parseInt(start_pos), parseInt(end_pos));	// queen eat
+		if (Math.abs(end_pos - start_pos) < 10) 
+			return valid_move_bit(parseInt(start_pos), parseInt(end_pos)) || valid_move_usd(parseInt(start_pos), parseInt(end_pos));	// queen move
+		else 
+			return valid_eat_queen(parseInt(start_pos), parseInt(end_pos));	// queen eat
 	}
 }
 
@@ -132,7 +138,7 @@ function valid_eat_usd(start_pos, end_pos) {
 }
 
 function valid_eat_queen(start_pos, end_pos) {
-	if((board.charAt(start_pos + (end_pos - start_pos)/2) == (bit_player ? "2" : "1")) || (board.charAt(start_pos + (end_pos - start_pos)/2) == (bit_player ? "4" : "3")))
+	if((board.charAt(start_pos + (end_pos - start_pos)/2) == (bitPlayer ? "2" : "1")) || (board.charAt(start_pos + (end_pos - start_pos)/2) == (bitPlayer ? "4" : "3")))
 	{
 		if(start_pos % 8 == 0 && (end_pos == start_pos - 14 || end_pos == start_pos + 18))
 		{
@@ -161,8 +167,8 @@ function replaceChar(string, index, replace) {
 }
 
 function gameOver() {
-	var noBit = true;
-	var noUsd = true;
+	let noBit = true;
+	let noUsd = true;
 	for (let i = 0; i < board.length; i++) {
 		if (board[i] == '1' || board[i] == '3') noBit = false;
 		else if (board[i] == '2' || board[i] == '4') noUsd = false;
@@ -172,8 +178,8 @@ function gameOver() {
 	else if (noUsd) socket.send("exit:" + gameid + ":" + playerid);
 	*/
 	if (noBit || noUsd) {
-		socket.send("exit:" + gameid + ":" + playerid);
-		if ((noBit && bit_player) || (noUsd && !bit_player)) {
+		socket.send("exit:" + gameID + ":" + playerID);
+		if ((noBit && bitPlayer) || (noUsd && !bitPlayer)) {
 			notify("You lost!", false);
 		}
 		else {
@@ -195,37 +201,37 @@ function notify(msg, timeout) {
 // WEB SOCKET
 
 socket.onmessage = function(event){
-	var input = event.data;
+	const input = event.data;
 	if (input.startsWith("playerid:")) {
-		playerid = input.split(":").pop();
-		socket.send("registered: player" + playerid);
+		playerID = input.split(":").pop();
+		socket.send("registered: player" + playerID);
 		notify("waiting for opponent", false);
 	}
 	else if (input.startsWith("gameid:")) {
-		var array = input.split(":");
-		gameid = array[2];
-		bit_player = (array[1] == "bit");
-		playermove = bit_player; // makes bit_player go first
-		socket.send("player " + playerid + " registered to game " + gameid);
+		const array = input.split(":");
+		gameID = array[2];
+		bitPlayer = (array[1] == "bit");
+		playerMove = bitPlayer; // makes bit_player go first
+		socket.send("player " + playerID + " registered to game " + gameID);
 		setUpBoard();
-		notify("You are " + (bit_player ? "first, bitcoin!" : "second, dollar!"), true);
+		notify("You are " + (bitPlayer ? "first, bitcoin!" : "second, dollar!"), true);
 	}
 	else if (input.startsWith("board:")) {
 		board = input.split(":").pop();
-		playermove = true;
-		socket.send("board for game " + gameid + " received");
+		playerMove = true;
+		socket.send("board for game " + gameID + " received");
 		setUpBoard();
 	}
 	else if (input.startsWith("exit:")) {
-		playermove = false;
-		var exitcode = input.split(":").pop();
+		playerMove = false;
+		const exitcode = input.split(":").pop();
 		notify("You lost!", false);
 	}
 	else {
-		socket.send("Invalid message sent to player " + playerid + " : " + input);
+		socket.send("Invalid message sent to player " + playerID + " : " + input);
 	}
 };
 
 socket.onopen = function(){
-	socket.send("client ready");
+	socket.send("screen:game");
 };

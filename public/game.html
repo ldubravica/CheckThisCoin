@@ -1,11 +1,12 @@
 <html>
+
 <head>
     <title>CheckThisCoin</title>
 	<link rel="stylesheet" type="text/css" href="stylesheets/style.css">
 	<link rel="icon" href="images/logo.png">
 </head>
+
 <body>
-	<!-- <center><canvas id="gameCanvas" width="800" height="800" style="border:1px solid #000000;" ></canvas></center> -->
 	<a href="splash.html">
 		<img src="images/back.png" width="55px" height="55px" id="btn_back">
 	</a>
@@ -13,88 +14,89 @@
 	<main class="horver-center">
 	<div id="grids">
 		<div class='row'>
-			<div class='grid black' id="d0" onClick="move_piece(this.id)"><img id="b0" class="regulate-size"></div>
-			<div class='grid white' id="d1" onClick="move_piece(this.id)"><img id="b1" class="regulate-size"></div>
-			<div class='grid black' id="d2" onClick="move_piece(this.id)"><img id="b2" class="regulate-size"></div>
-			<div class='grid white' id="d3" onClick="move_piece(this.id)"><img id="b3" class="regulate-size"></div>
-			<div class='grid black' id="d4" onClick="move_piece(this.id)"><img id="b4" class="regulate-size"></div>
-			<div class='grid white' id="d5" onClick="move_piece(this.id)"><img id="b5" class="regulate-size"></div>
-			<div class='grid black' id="d6" onClick="move_piece(this.id)"><img id="b6" class="regulate-size"></div>
-			<div class='grid white' id="d7" onClick="move_piece(this.id)"><img id="b7" class="regulate-size"></div>
+			<div class='grid black' id="d0" onClick="movePiece(this.id)"><img id="b0" class="regulate-size"></div>
+			<div class='grid white' id="d1" onClick="movePiece(this.id)"><img id="b1" class="regulate-size"></div>
+			<div class='grid black' id="d2" onClick="movePiece(this.id)"><img id="b2" class="regulate-size"></div>
+			<div class='grid white' id="d3" onClick="movePiece(this.id)"><img id="b3" class="regulate-size"></div>
+			<div class='grid black' id="d4" onClick="movePiece(this.id)"><img id="b4" class="regulate-size"></div>
+			<div class='grid white' id="d5" onClick="movePiece(this.id)"><img id="b5" class="regulate-size"></div>
+			<div class='grid black' id="d6" onClick="movePiece(this.id)"><img id="b6" class="regulate-size"></div>
+			<div class='grid white' id="d7" onClick="movePiece(this.id)"><img id="b7" class="regulate-size"></div>
 		</div>
 		<div class='row'>
-			<div class='grid white' id="d8" onClick="move_piece(this.id)"><img id="b8" class="regulate-size"></div>
-			<div class='grid black' id="d9" onClick="move_piece(this.id)"><img id="b9" class="regulate-size"></div>
-			<div class='grid white' id="d10" onClick="move_piece(this.id)"><img id="b10" class="regulate-size"></div>
-			<div class='grid black' id="d11" onClick="move_piece(this.id)"><img id="b11" class="regulate-size"></div>
-			<div class='grid white' id="d12" onClick="move_piece(this.id)"><img id="b12" class="regulate-size"></div>
-			<div class='grid black' id="d13" onClick="move_piece(this.id)"><img id="b13" class="regulate-size"></div>
-			<div class='grid white' id="d14" onClick="move_piece(this.id)"><img id="b14" class="regulate-size"></div>
-			<div class='grid black' id="d15" onClick="move_piece(this.id)"><img id="b15" class="regulate-size"></div>
+			<div class='grid white' id="d8" onClick="movePiece(this.id)"><img id="b8" class="regulate-size"></div>
+			<div class='grid black' id="d9" onClick="movePiece(this.id)"><img id="b9" class="regulate-size"></div>
+			<div class='grid white' id="d10" onClick="movePiece(this.id)"><img id="b10" class="regulate-size"></div>
+			<div class='grid black' id="d11" onClick="movePiece(this.id)"><img id="b11" class="regulate-size"></div>
+			<div class='grid white' id="d12" onClick="movePiece(this.id)"><img id="b12" class="regulate-size"></div>
+			<div class='grid black' id="d13" onClick="movePiece(this.id)"><img id="b13" class="regulate-size"></div>
+			<div class='grid white' id="d14" onClick="movePiece(this.id)"><img id="b14" class="regulate-size"></div>
+			<div class='grid black' id="d15" onClick="movePiece(this.id)"><img id="b15" class="regulate-size"></div>
 		</div>
 		<div class='row'>
-			<div class='grid black' id="d16" onClick="move_piece(this.id)"><img id="b16" class="regulate-size"></div>
-			<div class='grid white' id="d17" onClick="move_piece(this.id)"><img id="b17" class="regulate-size"></div>
-			<div class='grid black' id="d18" onClick="move_piece(this.id)"><img id="b18" class="regulate-size"></div>
-			<div class='grid white' id="d19" onClick="move_piece(this.id)"><img id="b19" class="regulate-size"></div>
-			<div class='grid black' id="d20" onClick="move_piece(this.id)"><img id="b20" class="regulate-size"></div>
-			<div class='grid white' id="d21" onClick="move_piece(this.id)"><img id="b21" class="regulate-size"></div>
-			<div class='grid black' id="d22" onClick="move_piece(this.id)"><img id="b22" class="regulate-size"></div>
-			<div class='grid white' id="d23" onClick="move_piece(this.id)"><img id="b23" class="regulate-size"></div>
+			<div class='grid black' id="d16" onClick="movePiece(this.id)"><img id="b16" class="regulate-size"></div>
+			<div class='grid white' id="d17" onClick="movePiece(this.id)"><img id="b17" class="regulate-size"></div>
+			<div class='grid black' id="d18" onClick="movePiece(this.id)"><img id="b18" class="regulate-size"></div>
+			<div class='grid white' id="d19" onClick="movePiece(this.id)"><img id="b19" class="regulate-size"></div>
+			<div class='grid black' id="d20" onClick="movePiece(this.id)"><img id="b20" class="regulate-size"></div>
+			<div class='grid white' id="d21" onClick="movePiece(this.id)"><img id="b21" class="regulate-size"></div>
+			<div class='grid black' id="d22" onClick="movePiece(this.id)"><img id="b22" class="regulate-size"></div>
+			<div class='grid white' id="d23" onClick="movePiece(this.id)"><img id="b23" class="regulate-size"></div>
 		</div>
 		<div class='row'>
-			<div class='grid white' id="d24" onClick="move_piece(this.id)"><img id="b24" class="regulate-size"></div>
-			<div class='grid black' id="d25" onClick="move_piece(this.id)"><img id="b25" class="regulate-size"></div>
-			<div class='grid white' id="d26" onClick="move_piece(this.id)"><img id="b26" class="regulate-size"></div>
-			<div class='grid black' id="d27" onClick="move_piece(this.id)"><img id="b27" class="regulate-size"></div>
-			<div class='grid white' id="d28" onClick="move_piece(this.id)"><img id="b28" class="regulate-size"></div>
-			<div class='grid black' id="d29" onClick="move_piece(this.id)"><img id="b29" class="regulate-size"></div>
-			<div class='grid white' id="d30" onClick="move_piece(this.id)"><img id="b30" class="regulate-size"></div>
-			<div class='grid black' id="d31" onClick="move_piece(this.id)"><img id="b31" class="regulate-size"></div>
+			<div class='grid white' id="d24" onClick="movePiece(this.id)"><img id="b24" class="regulate-size"></div>
+			<div class='grid black' id="d25" onClick="movePiece(this.id)"><img id="b25" class="regulate-size"></div>
+			<div class='grid white' id="d26" onClick="movePiece(this.id)"><img id="b26" class="regulate-size"></div>
+			<div class='grid black' id="d27" onClick="movePiece(this.id)"><img id="b27" class="regulate-size"></div>
+			<div class='grid white' id="d28" onClick="movePiece(this.id)"><img id="b28" class="regulate-size"></div>
+			<div class='grid black' id="d29" onClick="movePiece(this.id)"><img id="b29" class="regulate-size"></div>
+			<div class='grid white' id="d30" onClick="movePiece(this.id)"><img id="b30" class="regulate-size"></div>
+			<div class='grid black' id="d31" onClick="movePiece(this.id)"><img id="b31" class="regulate-size"></div>
 		</div>
 		<div class='row'>
-			<div class='grid black' id="d32" onClick="move_piece(this.id)"><img id="b32" class="regulate-size"></div>
-			<div class='grid white' id="d33" onClick="move_piece(this.id)"><img id="b33" class="regulate-size"></div>
-			<div class='grid black' id="d34" onClick="move_piece(this.id)"><img id="b34" class="regulate-size"></div>
-			<div class='grid white' id="d35" onClick="move_piece(this.id)"><img id="b35" class="regulate-size"></div>
-			<div class='grid black' id="d36" onClick="move_piece(this.id)"><img id="b36" class="regulate-size"></div>
-			<div class='grid white' id="d37" onClick="move_piece(this.id)"><img id="b37" class="regulate-size"></div>
-			<div class='grid black' id="d38" onClick="move_piece(this.id)"><img id="b38" class="regulate-size"></div>
-			<div class='grid white' id="d39" onClick="move_piece(this.id)"><img id="b39" class="regulate-size"></div>
+			<div class='grid black' id="d32" onClick="movePiece(this.id)"><img id="b32" class="regulate-size"></div>
+			<div class='grid white' id="d33" onClick="movePiece(this.id)"><img id="b33" class="regulate-size"></div>
+			<div class='grid black' id="d34" onClick="movePiece(this.id)"><img id="b34" class="regulate-size"></div>
+			<div class='grid white' id="d35" onClick="movePiece(this.id)"><img id="b35" class="regulate-size"></div>
+			<div class='grid black' id="d36" onClick="movePiece(this.id)"><img id="b36" class="regulate-size"></div>
+			<div class='grid white' id="d37" onClick="movePiece(this.id)"><img id="b37" class="regulate-size"></div>
+			<div class='grid black' id="d38" onClick="movePiece(this.id)"><img id="b38" class="regulate-size"></div>
+			<div class='grid white' id="d39" onClick="movePiece(this.id)"><img id="b39" class="regulate-size"></div>
 		</div>
 		<div class='row'>
-			<div class='grid white' id="d40" onClick="move_piece(this.id)"><img id="b40" class="regulate-size"></div>
-			<div class='grid black' id="d41" onClick="move_piece(this.id)"><img id="b41" class="regulate-size"></div>
-			<div class='grid white' id="d42" onClick="move_piece(this.id)"><img id="b42" class="regulate-size"></div>
-			<div class='grid black' id="d43" onClick="move_piece(this.id)"><img id="b43" class="regulate-size"></div>
-			<div class='grid white' id="d44" onClick="move_piece(this.id)"><img id="b44" class="regulate-size"></div>
-			<div class='grid black' id="d45" onClick="move_piece(this.id)"><img id="b45" class="regulate-size"></div>
-			<div class='grid white' id="d46" onClick="move_piece(this.id)"><img id="b46" class="regulate-size"></div>
-			<div class='grid black' id="d47" onClick="move_piece(this.id)"><img id="b47" class="regulate-size"></div>
+			<div class='grid white' id="d40" onClick="movePiece(this.id)"><img id="b40" class="regulate-size"></div>
+			<div class='grid black' id="d41" onClick="movePiece(this.id)"><img id="b41" class="regulate-size"></div>
+			<div class='grid white' id="d42" onClick="movePiece(this.id)"><img id="b42" class="regulate-size"></div>
+			<div class='grid black' id="d43" onClick="movePiece(this.id)"><img id="b43" class="regulate-size"></div>
+			<div class='grid white' id="d44" onClick="movePiece(this.id)"><img id="b44" class="regulate-size"></div>
+			<div class='grid black' id="d45" onClick="movePiece(this.id)"><img id="b45" class="regulate-size"></div>
+			<div class='grid white' id="d46" onClick="movePiece(this.id)"><img id="b46" class="regulate-size"></div>
+			<div class='grid black' id="d47" onClick="movePiece(this.id)"><img id="b47" class="regulate-size"></div>
 		</div>
 		<div class='row'>
-			<div class='grid black' id="d48" onClick="move_piece(this.id)"><img id="b48" class="regulate-size"></div>
-			<div class='grid white' id="d49" onClick="move_piece(this.id)"><img id="b49" class="regulate-size"></div>
-			<div class='grid black' id="d50" onClick="move_piece(this.id)"><img id="b50" class="regulate-size"></div>
-			<div class='grid white' id="d51" onClick="move_piece(this.id)"><img id="b51" class="regulate-size"></div>
-			<div class='grid black' id="d52" onClick="move_piece(this.id)"><img id="b52" class="regulate-size"></div>
-			<div class='grid white' id="d53" onClick="move_piece(this.id)"><img id="b53" class="regulate-size"></div>
-			<div class='grid black' id="d54" onClick="move_piece(this.id)"><img id="b54" class="regulate-size"></div>
-			<div class='grid white' id="d55" onClick="move_piece(this.id)"><img id="b55" class="regulate-size"></div>
+			<div class='grid black' id="d48" onClick="movePiece(this.id)"><img id="b48" class="regulate-size"></div>
+			<div class='grid white' id="d49" onClick="movePiece(this.id)"><img id="b49" class="regulate-size"></div>
+			<div class='grid black' id="d50" onClick="movePiece(this.id)"><img id="b50" class="regulate-size"></div>
+			<div class='grid white' id="d51" onClick="movePiece(this.id)"><img id="b51" class="regulate-size"></div>
+			<div class='grid black' id="d52" onClick="movePiece(this.id)"><img id="b52" class="regulate-size"></div>
+			<div class='grid white' id="d53" onClick="movePiece(this.id)"><img id="b53" class="regulate-size"></div>
+			<div class='grid black' id="d54" onClick="movePiece(this.id)"><img id="b54" class="regulate-size"></div>
+			<div class='grid white' id="d55" onClick="movePiece(this.id)"><img id="b55" class="regulate-size"></div>
 		</div>
 		<div class='row'>
-			<div class='grid white' id="d56" onClick="move_piece(this.id)"><img id="b56" class="regulate-size"></div>
-			<div class='grid black' id="d57" onClick="move_piece(this.id)"><img id="b57" class="regulate-size"></div>
-			<div class='grid white' id="d58" onClick="move_piece(this.id)"><img id="b58" class="regulate-size"></div>
-			<div class='grid black' id="d59" onClick="move_piece(this.id)"><img id="b59" class="regulate-size"></div>
-			<div class='grid white' id="d60" onClick="move_piece(this.id)"><img id="b60" class="regulate-size"></div>
-			<div class='grid black' id="d61" onClick="move_piece(this.id)"><img id="b61" class="regulate-size"></div>
-			<div class='grid white' id="d62" onClick="move_piece(this.id)"><img id="b62" class="regulate-size"></div>
-			<div class='grid black' id="d63" onClick="move_piece(this.id)"><img id="b63" class="regulate-size"></div>
+			<div class='grid white' id="d56" onClick="movePiece(this.id)"><img id="b56" class="regulate-size"></div>
+			<div class='grid black' id="d57" onClick="movePiece(this.id)"><img id="b57" class="regulate-size"></div>
+			<div class='grid white' id="d58" onClick="movePiece(this.id)"><img id="b58" class="regulate-size"></div>
+			<div class='grid black' id="d59" onClick="movePiece(this.id)"><img id="b59" class="regulate-size"></div>
+			<div class='grid white' id="d60" onClick="movePiece(this.id)"><img id="b60" class="regulate-size"></div>
+			<div class='grid black' id="d61" onClick="movePiece(this.id)"><img id="b61" class="regulate-size"></div>
+			<div class='grid white' id="d62" onClick="movePiece(this.id)"><img id="b62" class="regulate-size"></div>
+			<div class='grid black' id="d63" onClick="movePiece(this.id)"><img id="b63" class="regulate-size"></div>
 		</div>
 	</div>
 	<p id="notification"> </p>
 	</main>
 	<script src="javascripts/game-control.js"></script>
 </body>
+
 </html>

@@ -1,51 +1,50 @@
-var express = require("express");
-var http = require("http");
-var websocket = require("ws");
+const express = require("express");
+const http = require("http");
+const websocket = require("ws");
 
-var splash = false;
+let splash = false;
 
 // setting the core
-var currentGames = [];
-var waitingPlayers = [];
-var playerid = 0; // try: removing or renaming to sessionID which stays across both splash and game screen
-var gameid = 0;
+let currentGames = [];
+let waitingPlayers = [];
+let playerID = 0; // try: removing or renaming to sessionID which stays across both splash and game screen
+let gameID = 0;
 
-function Game() {
-	var id = -1;
-	var player1 = -1; // set to ws
-	var player2 = -1; // set to ws
-	var board = "1010101001010101101010100000000000000000020202022020202002020202"; 
-	var turn = 1; // when set to 0, game is loading
+class Game {
+	constructor() {
+		this.id = -1;
+		this.player1 = -1; // set to ws
+		this.player2 = -1; // set to ws
+		this.board = "1010101001010101101010100000000000000000020202022020202002020202";
+		this.turn = 1; // when set to 0, game is loading
+	}
 }
 
-var port = process.argv[2];
-var app = express();
+const port = process.argv[2];
+const app = express();
 
 app.use(express.static(__dirname + "/public"));
 
-var server = http.createServer(app);
-
+const server = http.createServer(app);
 const wss = new websocket.Server({ server });
 
 wss.on("connection", function(ws) {
 
 	// WARM UP
-
-	console.log("[SER] server ready");
+	console.log("\n[SER] server ready");
 
 	// SET UP CLIENT
-	ws.send("playerid:" + ((playerid % 2) + 1));
+	ws.send("playerid:" + ((playerID % 2) + 1));
 	waitingPlayers.unshift(ws);
-	playerid++;
+	playerID++;
 	
 	// SET UP GAME
-
     ws.on("message", function incoming(message) {
 		console.log("[CLI] " + message);
-		if(message == "splash:info") {
-			playerid--;
+		if(message == "screen:splash") {
+			playerID--;
 			waitingPlayers.shift();
-			console.log("[SER] player " + playerid + " deregistered due to splash");
+			console.log("[SER] player " + playerID + " deregistered due to splash");
 			ws.send(currentGames.length);
 		}
 		else if (message.startsWith("registered:")) {
@@ -72,8 +71,8 @@ server.listen(port);
 function setUpGame() {
 	if (waitingPlayers.length < 2) return;
 
-	var newGame = new Game();
-	newGame.id = gameid++; // not tested: ++
+	const newGame = new Game();
+	newGame.id = gameID++; // not tested: ++
 	newGame.player1 = waitingPlayers.pop();
 	newGame.player2 = waitingPlayers.pop();
 	currentGames.push(newGame);
@@ -88,27 +87,27 @@ function setUpGame() {
 }
 
 function updateBoard(message) {  // board:3:1:1010...0202
-	var input = message.split(":");
-	var temp_gameid = input[1];
-	var temp_playerid = input[2];
-	var next_playerid = (temp_playerid == 1) ? 2 : 1;
-	var temp_board = input[3];
-	var pos = -1;
+	const input = message.split(":");
+	const currGameID = input[1];
+	const currPlayerID = input[2];
+	const nextPlayerID = (currPlayerID == 1) ? 2 : 1;
+	const currBoard = input[3];
+	let pos = -1;
 
 	for (let i = 0; i < currentGames.length; i++) {
-		if (currentGames[i].id == temp_gameid) {
+		if (currentGames[i].id == currGameID) {
 			pos = i;
 			i = currentGames.length;
 		}
 	}
 
-	currentGames[pos].board = temp_board;
-	currentGames[pos].turn = next_playerid;
-	currentGames[pos]["player" + next_playerid].send("board:" + currentGames[pos].board);
+	currentGames[pos].board = currBoard;
+	currentGames[pos].turn = nextPlayerID;
+	currentGames[pos]["player" + nextPlayerID].send("board:" + currentGames[pos].board);
 }
 
 function exitGame(message, ws) {
-	var input = message.split(":");
+	let input = message.split(":");
 	
 	for (let i = 0; i < currentGames.length; i++) {
 		if (currentGames[i].id == input[1]) {
@@ -116,7 +115,7 @@ function exitGame(message, ws) {
 				input[2] = ws == currentGames[i].player1 ? 1 : 2; 
 			}
 
-			var contact = currentGames[i]["player" + (input[2] == 1 ? 2 : 1)];
+			const contact = currentGames[i]["player" + (input[2] == 1 ? 2 : 1)];
 			if (contact != -1) contact.send("exit:" + input[1]);
 
 			currentGames[i].player1 = -1;
