@@ -1,5 +1,3 @@
-let holding = false;
-let originalPosition = 0;
 const socket = new WebSocket("ws://localhost:3000");
 
 let playerID = -1;
@@ -16,7 +14,6 @@ function setUpBoard() {
 			document.getElementById("b" + i).src = "images/coin_bit.png";
 		else if (board.charAt(i) == "2")
 			document.getElementById("b" + i).src = "images/coin_usd.png";
-	//	queen stuff
 		else if (board.charAt(i) == "3")
 			document.getElementById("b" + i).src = "images/coin_bit_queen.png";
 		else if (board.charAt(i) == "4")
@@ -24,16 +21,18 @@ function setUpBoard() {
 	}
 }
 
+let holding = false;
+let originalPosition = 0;
+
 function movePiece(clickedID) {
-	console.log("ClickedXXX");
 	const selectedPosition = clickedID.substring(1,3);
-	if (playerMove && holding == false && (board.charAt(selectedPosition) == (bitPlayer ? "1" : "2") || board.charAt(selectedPosition) == (bitPlayer ? "3" : "4"))) {
+	if (playerMove && !holding && (bitPlayer ? [1, 3] : [2, 4]).includes(board.charAt(selectedPosition))) {
 		originalPosition = selectedPosition;
 		holding = true;
-		document.getElementById("d"+originalPosition).style.background = "#006600";
+		document.getElementById("d" + originalPosition).style.background = "#006600";
 	}
-	else if (playerMove && holding == true && board.charAt(selectedPosition) == "0" && valid_move(originalPosition, selectedPosition)) {
-	// queen stuff
+	else if (playerMove && holding && board.charAt(selectedPosition) == "0" && validMove(originalPosition, selectedPosition)) {
+		// QUEEN STUFF
 		if (bitPlayer && selectedPosition > 55)
 			board = replaceChar(board, originalPosition, "3");
 		else if (!bitPlayer && selectedPosition < 8)
@@ -61,98 +60,98 @@ function movePiece(clickedID) {
 
 // VALIDITY OF THE MOVE
 
-function valid_move(start_pos, end_pos) { // ADD RECURSIVE CALL FOR EATING or allow user to move his piece again only if he is eating again, implement later w/ networking
-	if (board.charAt(start_pos) == "1")
-		if (end_pos - start_pos < 10) 
-			return valid_move_bit(parseInt(start_pos), parseInt(end_pos))
+function validMove(startPos, endPos) { // ADD RECURSIVE CALL FOR EATING or allow user to move his piece again only if he is eating again, implement later w/ networking
+	if (board.charAt(startPos) == "1")
+		if (endPos - startPos < 10) 
+			return validMoveBit(startPos, endPos)
 		else 
-			return valid_eat_bit(parseInt(start_pos), parseInt(end_pos));
-	else if (board.charAt(start_pos) == "2")
-		if (start_pos - end_pos < 10) 
-			return valid_move_usd(parseInt(start_pos), parseInt(end_pos))
+			return validEatBit(startPos, endPos);
+	else if (board.charAt(startPos) == "2")
+		if (startPos - endPos < 10) 
+			return validMoveUsd(startPos, endPos)
 		else 
-			return valid_eat_usd(parseInt(start_pos), parseInt(end_pos));
-	else if (board.charAt(start_pos) == "3" || board.charAt(start_pos) == "4") { //	<<------	added queen property
-		if (Math.abs(end_pos - start_pos) < 10) 
-			return valid_move_bit(parseInt(start_pos), parseInt(end_pos)) || valid_move_usd(parseInt(start_pos), parseInt(end_pos));	// queen move
+			return validEatUsd(startPos, endPos);
+	else if ([3, 4].includes(board.charAt(startPos))) // QUEEN PROPERTY
+		if (Math.abs(endPos - startPos) < 10)
+			return validMoveQueen(startPos, endPos);
 		else 
-			return valid_eat_queen(parseInt(start_pos), parseInt(end_pos));	// queen eat
-	}
+			return validEatQueen(startPos, endPos);
 }
 
-function valid_move_bit(start_pos, end_pos) { // checks the validity of the bit move
-	if (start_pos % 8 == 0) {
-		return end_pos == start_pos + 9;
+function validMoveBit(startPos, endPos) { // checks the validity of the bit move
+	if (startPos % 8 == 0) { // if piece alongside left border
+		return endPos == startPos + 9;
 	}
-	else if (start_pos % 8 == 7) {
-		return end_pos == start_pos + 7;
+	else if (startPos % 8 == 7) { // if piece alongside right border
+		return endPos == startPos + 7;
 	}
 	else {
-		return (end_pos == start_pos + 9 || end_pos == start_pos + 7);
+		return (endPos == startPos + 9 || endPos == startPos + 7);
 	}
 }
 
-function valid_move_usd(start_pos, end_pos) { // checks the validity of the usd move
-	if (start_pos % 8 == 0) {
-		return end_pos == start_pos - 7;
+function validMoveUsd(startPos, endPos) { // checks the validity of the usd move
+	if (startPos % 8 == 0) { // if piece alongside left border
+		return endPos == startPos - 7;
 	}
-	else if (start_pos % 8 == 7) {
-		return end_pos == start_pos - 9;
+	else if (startPos % 8 == 7) { // if piece alongside right border
+		return endPos == startPos - 9;
 	}
 	else {
-		return (end_pos == start_pos - 9 || end_pos == start_pos - 7);
+		return (endPos == startPos - 9 || endPos == startPos - 7);
 	}
 }
 
-function valid_eat_bit(start_pos, end_pos) {
-	if (start_pos % 8 == 0 && end_pos == start_pos + 18 && (board.charAt(end_pos - 9) == "2" || board.charAt(end_pos - 9) == "4")) {
-		board = replaceChar(board, end_pos - 9, "0");
+function validMoveQueen(startPos, endPos) {
+	return validMoveBit(startPos, endPos) || validMoveUsd(startPos, endPos);
+}
+
+function validEatBit(startPos, endPos) {
+	if (startPos % 8 == 0 && endPos == startPos + 18 && [2, 4].includes(board.charAt(endPos - 9))) {
+		board = replaceChar(board, endPos - 9, "0");
 		return true;
 	}
-	else if (start_pos % 8 == 7 && end_pos == start_pos + 14 && (board.charAt(end_pos - 7) == "2" || board.charAt(end_pos - 7) == "4")) {
-		board = replaceChar(board, end_pos - 7, "0");
+	else if (startPos % 8 == 7 && endPos == startPos + 14 && [2, 4].includes(board.charAt(endPos - 7))) {
+		board = replaceChar(board, endPos - 7, "0");
 		return true;
 	}
-	else if (((board.charAt(start_pos + 9) == "2" || board.charAt(start_pos + 9) == "4") && end_pos == start_pos + 18) || 
-	((board.charAt(start_pos + 7) == "2" || board.charAt(start_pos + 7) == "4") && end_pos == start_pos + 14)) {
-		board = replaceChar(board, (start_pos + (end_pos - start_pos)/2), "0");
+	else if (([2, 4].includes(board.charAt(startPos + 9)) && endPos == startPos + 18) 
+		|| ([2, 4].includes(board.charAt(startPos + 7)) && endPos == startPos + 14)) {
+		board = replaceChar(board, (startPos + (endPos - startPos)/2), "0");
 		return true;
 	}
 	else return false;
 }
 
-function valid_eat_usd(start_pos, end_pos) {
-	if (start_pos % 8 == 0 && end_pos == start_pos - 14 && board.charAt(start_pos - 7) % 2 == 1) {
-		board = replaceChar(board, end_pos + 7, '0');
+function validEatUsd(startPos, endPos) {
+	if (startPos % 8 == 0 && endPos == startPos - 14 && board.charAt(startPos - 7) % 2 == 1) {
+		board = replaceChar(board, endPos + 7, '0');
 		return true;
 	}
-	else if (start_pos % 8 == 7 && end_pos == start_pos - 18 && board.charAt(start_pos - 9) % 2 == 1) {
-		board = replaceChar(board, end_pos + 9, '0');
+	else if (startPos % 8 == 7 && endPos == startPos - 18 && board.charAt(startPos - 9) % 2 == 1) {
+		board = replaceChar(board, endPos + 9, '0');
 		return true;
 	}
-	else if ((board.charAt(start_pos - 9) % 2 == 1 && end_pos == start_pos - 18) || (board.charAt(start_pos - 7) % 2 == 1 && end_pos == start_pos - 14)) {
-		board = replaceChar(board, start_pos + (end_pos - start_pos)/2, "0");
+	else if ((board.charAt(startPos - 9) % 2 == 1 && endPos == startPos - 18) 
+		|| (board.charAt(startPos - 7) % 2 == 1 && endPos == startPos - 14)) {
+		board = replaceChar(board, startPos + (endPos - startPos)/2, "0");
 		return true;
 	}
 	else return false;
 }
 
-function valid_eat_queen(start_pos, end_pos) {
-	if((board.charAt(start_pos + (end_pos - start_pos)/2) == (bitPlayer ? "2" : "1")) || (board.charAt(start_pos + (end_pos - start_pos)/2) == (bitPlayer ? "4" : "3")))
-	{
-		if(start_pos % 8 == 0 && (end_pos == start_pos - 14 || end_pos == start_pos + 18))
-		{
-			board = replaceChar(board, start_pos + (end_pos - start_pos)/2, "0");
+function validEatQueen(startPos, endPos) {
+	if ((bitPlayer ? [2, 4] : [1, 3]).includes(board.charAt(startPos + (endPos - startPos)/2))) {
+		if (startPos % 8 == 0 && [startPos - 14, startPos + 18].includes(endPos)) {
+			board = replaceChar(board, startPos + (endPos - startPos)/2, "0");
 			return true;
 		}
-		else if(start_pos % 8 == 7 && (end_pos == start_pos + 14 || end_pos == start_pos - 18))
-		{
-			board = replaceChar(board, start_pos + (end_pos - start_pos)/2, "0");
+		else if (startPos % 8 == 7 && [startPos + 14, startPos - 18].includes(endPos)) {
+			board = replaceChar(board, startPos + (endPos - startPos)/2, "0");
 			return true;
 		}
-		else if(Math.abs(end_pos - start_pos) == 14 || Math.abs(end_pos - start_pos) == 18)
-		{
-			board = replaceChar(board, start_pos + (end_pos - start_pos)/2, "0")
+		else if ([14, 18].includes(Math.abs(endPos - startPos))) {
+			board = replaceChar(board, startPos + (endPos - startPos)/2, "0")
 			return true;
 		}
 	}
@@ -169,14 +168,12 @@ function replaceChar(string, index, replace) {
 function gameOver() {
 	let noBit = true;
 	let noUsd = true;
+
 	for (let i = 0; i < board.length; i++) {
 		if (board[i] == '1' || board[i] == '3') noBit = false;
 		else if (board[i] == '2' || board[i] == '4') noUsd = false;
 	}
-	/*
-	if (noBit) socket.send("exit:" + gameid + ":" + playerid);
-	else if (noUsd) socket.send("exit:" + gameid + ":" + playerid);
-	*/
+
 	if (noBit || noUsd) {
 		socket.send("exit:" + gameID + ":" + playerID);
 		if ((noBit && bitPlayer) || (noUsd && !bitPlayer)) {
@@ -212,20 +209,20 @@ socket.onmessage = function(event){
 		gameID = array[2];
 		bitPlayer = (array[1] == "bit");
 		playerMove = bitPlayer; // makes bit_player go first
-		socket.send("player " + playerID + " registered to game " + gameID);
+		socket.send("game " + gameID + ": registered player " + playerID);
 		setUpBoard();
 		notify("You are " + (bitPlayer ? "first, bitcoin!" : "second, dollar!"), true);
 	}
 	else if (input.startsWith("board:")) {
 		board = input.split(":").pop();
 		playerMove = true;
-		socket.send("board for game " + gameID + " received");
+		socket.send("game " + gameID + ": board received");
 		setUpBoard();
 	}
 	else if (input.startsWith("exit:")) {
 		playerMove = false;
 		const exitcode = input.split(":").pop();
-		notify("You lost!", false);
+		notify("You won!", false);
 	}
 	else {
 		socket.send("Invalid message sent to player " + playerID + " : " + input);

@@ -2,9 +2,6 @@ const express = require("express");
 const http = require("http");
 const websocket = require("ws");
 
-let splash = false;
-
-// setting the core
 let currentGames = [];
 let waitingPlayers = [];
 let playerID = 0; // try: removing or renaming to sessionID which stays across both splash and game screen
