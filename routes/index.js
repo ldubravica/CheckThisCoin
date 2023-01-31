@@ -1,5 +1,5 @@
-const express = require("express");
-const router = express.Router();
+import { Router } from "express";
+const router = Router();
 
 /* GET home page */
 router.get("/", function (req, res) {
@@ -11,4 +11,4 @@ router.get("/play", function(req, res) {
 	res.sendFile("/game.html", {root: "./public"});
 });
 
-module.exports = router;
+export default router;

@@ -5,6 +5,5 @@ socket.onopen = function(){
 };
 
 socket.onmessage = function(event){
-	document.getElementById("ongoing").innerHTML = event.data + " ongoing games";
+	document.getElementById("ongoing").innerHTML = `${event.data} ongoing games`;
 };
-
