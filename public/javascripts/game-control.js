@@ -47,7 +47,7 @@ function movePiece(clickedID) {
 	const canPrevMove = canPieceMove(prevX, prevY);
 	const canCurrMove = canPieceMove(currX, currY);
 
-	console.log("canEat " + canPrevEat);
+	console.log("canEat " + canEat);
 	console.log("canPrevEat " + canPrevEat);
 	console.log("canCurrEat " + canCurrEat);
 
@@ -74,10 +74,10 @@ function movePiece(clickedID) {
 		board[enemyPiece[1]][enemyPiece[0]] = 0;
 		updateBoard(prevX, prevY, currX, currY);
 		// check if another eating is allowed
-		if (!canCurrEat) {
-			finishMove();
-		} else {
+		if (canPieceEat(currX, currY)) {
 			rememberPiece(currX, currY);
+		} else {
+			finishMove();
 		}
 	} else if (isHolding && canPrevMove) {
 		console.log("Moving possible, but is valid? " + validMove(prevX, prevY, currX, currY));
@@ -94,7 +94,9 @@ function canAnythingEat() {
 	for (let y = 0; y < 8; y++) {
 		for (let x = 0; x < 8; x++) {
 			if (friendlyPieces.includes(board[y][x])) {
-				if (canPieceEat(x, y)) return true;
+				let info = canPieceEat(x, y);
+				console.log("anything " + info);
+				if (info) return true;
 			}
 		}
 	}
@@ -260,7 +262,7 @@ function notify(msg, timeout) {
 }
 
 function setupPlayer(bitPlayer) {
-	isPlayerTurn = bitPlayer; // makes bit_player go first
+	isPlayerTurn = bitPlayer; // makes bitPlayer go first
 	friendlyPieces = bitPlayer ? [1, 3] : [2, 4];
 	enemyPieces = bitPlayer ? [2, 4] : [1, 3];
 	diffMoveY = bitPlayer ? 1 : -1;
