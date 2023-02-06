@@ -29,9 +29,9 @@ wss.on("connection", function(ws) {
 
     ws.on("message", function incoming(message) {
 		console.log(`[CLI] ${message}`);
-		if (message == "screen:splash") {
+		if (message == "screen:splash") { // screen:splash
 			ws.send(currentGames.size);
-		} else if (message == "screen:game") {
+		} else if (message == "screen:game") { // screen:game
 			ws.send(`pid:${++playerID}`);
 			waitingPlayers.unshift(ws);
 			setUpGame();
@@ -78,6 +78,8 @@ function updateBoard(message) { // board:gid:pid:[[...]]
 
 	currGame.board = JSON.parse(input[3])
 	currentGames.set(currGameID, currGame);
+
+	// TODO: inverse the board depending on the currGame.turn
 
 	currGame.players[(currGame.turn + 1) % 2].send(`board:${JSON.stringify(currGame.board)}`);
 }

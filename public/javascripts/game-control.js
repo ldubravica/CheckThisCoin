@@ -5,7 +5,7 @@ let gameID = -1;
 let board = [[1,0,1,0,1,0,1,0],[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0],[0,0,0,0,0,0,0,0],
 			 [0,0,0,0,0,0,0,0],[0,2,0,2,0,2,0,2],[2,0,2,0,2,0,2,0],[0,2,0,2,0,2,0,2]];
 
-let playerTurn;
+let isPlayerTurn;
 let playerAte;
 let friendlyPieces;
 let enemyPieces;
@@ -31,80 +31,164 @@ function setUpBoard() {
 	}
 }
 
-let holding = false;
-let oldX = 0;
-let oldY = 0;
+let isHolding = false;
+let prevX = 0;
+let prevY = 0;
 
 function movePiece(clickedID) {
 	const currY = parseInt(clickedID.substring(1,2));
 	const currX = parseInt(clickedID.substring(2,3));
 
-	if (!playerTurn) { // if not player's turn
+	const isFriendly = friendlyPieces.includes(board[currY][currX]);
+	const samePiece = currX == prevX && currY == prevY;
+	const canEat = canAnythingEat();
+	const canPrevEat = canPieceEat(prevX, prevY);
+	const canCurrEat = canPieceEat(currX, currY);
+	const canPrevMove = canPieceMove(prevX, prevY);
+	const canCurrMove = canPieceMove(currX, currY);
+
+	console.log("canEat " + canPrevEat);
+	console.log("canPrevEat " + canPrevEat);
+	console.log("canCurrEat " + canCurrEat);
+
+	if (!isPlayerTurn) {
 		notify("Not your turn!", true);
-	} else if (!holding && friendlyPieces.includes(board[currY][currX])) { // if the first selected tile is a friendly piece
-		oldX = currX;
-		oldY = currY;
-		holding = true;
-		playerAte = false;
-		document.getElementById(`d${oldY}${oldX}`).style.background = "#006600";
-	} else if (holding && validMove(oldX, oldY, currX, currY)) { // if the second selected tile is a valid move
-		// update and generate new board
-		board[currY][currX] = currY == endLine ? friendlyPieces[1] : board[oldY][oldX];
-		board[oldY][oldX] = 0;
-		document.getElementById(`d${oldY}${oldX}`).style.background = "#2b002c";
-		setUpBoard();
-
-		holding = false;
-		socket.send(`board:${gameID}:${playerID}:${JSON.stringify(board)}`);
-		playerTurn = playerAte;
-		if (!playerTurn) socket.send(`turn:${gameID}:${playerID}`)
-
-		// notify the server and the user if the game is over
-		if (hasUserWon()) {
-			socket.send(`exit:${gameID}:${playerID}:won`);
-			notify(`You won!`, false);
+	} else if (!isHolding) {
+		if (!isFriendly || !(canCurrEat || canCurrMove)) {
+			notify("Invalid move!", true);
+			return;
 		}
-	} else {
-		document.getElementById(`d${oldY}${oldX}`).style.background = "#2b002c";
-		notify("Invalid move!", true);
-		holding = false;
+		rememberPiece(currX, currY);
+		isHolding = true;
+	} else if (isHolding && samePiece && !canCurrEat) {
+		isHolding = false;
+		document.getElementById(`d${currY}${currX}`).style.background = "#2b002c";
+	} else if (isHolding && canPrevEat) {
+		let enemyPiece = validEat(prevX, prevY, currX, currY);
+		console.log("Eating possible, but is valid? " + (enemyPiece.length == 2));
+		if (enemyPiece.length == 0) {
+			notify("Invalid move!", true);
+			return;
+		}
+		// remove the eaten piece
+		board[enemyPiece[1]][enemyPiece[0]] = 0;
+		updateBoard(prevX, prevY, currX, currY);
+		// check if another eating is allowed
+		if (!canCurrEat) {
+			finishMove();
+		} else {
+			rememberPiece(currX, currY);
+		}
+	} else if (isHolding && canPrevMove) {
+		console.log("Moving possible, but is valid? " + validMove(prevX, prevY, currX, currY));
+		if (!validMove(prevX, prevY, currX, currY) || canEat) {
+			notify("Invalid move!", true);
+			return;
+		}
+		updateBoard(prevX, prevY, currX, currY);
+		finishMove();
 	}
 }
 
-// VALIDITY OF THE MOVE
-
-function validMove(startX, startY, endX, endY) {
-	if (board[endY][endX] != 0)
-		return false;
-	if (board[startY][startX] == friendlyPieces[0])
-		return validMoveForward(startX, startY, endX, endY) || validEat(startX, startY, endX, endY);
-	if (board[startY][startX] == friendlyPieces[1])
-		return validQueenMove(startX, startY, endX, endY);
+function canAnythingEat() {
+	for (let y = 0; y < 8; y++) {
+		for (let x = 0; x < 8; x++) {
+			if (friendlyPieces.includes(board[y][x])) {
+				if (canPieceEat(x, y)) return true;
+			}
+		}
+	}
+	return false;
 }
 
-function validMoveForward(startX, startY, endX, endY) {
-	const allowedY = endY - startY == diffMoveY;
-	const allowedX = Math.abs(endX - startX) == 1;
-	return allowedY && allowedX;
+// VALIDITY OF THE MOVE - ALTERNATIVE
+
+function canPieceMove(startX, startY) {
+	// console.log("canPieceMove " + board[startY][startX] + " " + friendlyPieces[0] + " " + (board[startY][startX] == friendlyPieces[0]));
+	if (board[startY][startX] == friendlyPieces[0]) {
+		const optionA = startX > 0 && validMove(startX, startY, startX - 1, startY + diffMoveY);
+		const optionB = startX < 7 && validMove(startX, startY, startX + 1, startY + diffMoveY);
+		// console.log("canPieceMove " + (optionA || optionB));
+		return optionA || optionB;
+	} else {
+		for (let i = startX, j = startY; i < 8 && j < 8; i++, j++) {
+			if (validQueenMove(startX, startY, i, j).length == 0) return true; 
+		}
+		for (let i = startX, j = startY; i < 8 && j > -1; i++, j--) {
+			if (validQueenMove(startX, startY, i, j).length == 0) return true;
+		}
+		for (let i = startX, j = startY; i > -1 && j < 8; i--, j++) {
+			if (validQueenMove(startX, startY, i, j).length == 0) return true;
+		}
+		for (let i = startX, j = startY; i > -1 && j > -1; i--, j--) {
+			if (validQueenMove(startX, startY, i, j).length == 0) return true;
+		}
+		return false;
+	}
+}
+
+function canPieceEat(startX, startY) {
+	// console.log("canPieceEat " + board[startY][startX] + " " + friendlyPieces[0] + " " + (board[startY][startX] == friendlyPieces[0]));
+	if (board[startY][startX] == friendlyPieces[0]) {
+		if (startY + diffEatY > 7 || startY + diffEatY < 0) return false;
+		const optionA = startX > 1 && (validEat(startX, startY, startX - 2, startY + diffEatY).length == 2);
+		const optionB = startX < 6 && (validEat(startX, startY, startX + 2, startY + diffEatY).length == 2);
+		// console.log("canPieceEat " + (optionA || optionB));
+		return optionA || optionB;
+	} else {
+		for (let i = startX, j = startY; i < 8 && j < 8; i++, j++) {
+			if (validQueenMove(startX, startY, i, j).length == 2) return true; 
+		}
+		for (let i = startX, j = startY; i < 8 && j > -1; i++, j--) {
+			if (validQueenMove(startX, startY, i, j).length == 2) return true;
+		}
+		for (let i = startX, j = startY; i > -1 && j < 8; i--, j++) {
+			if (validQueenMove(startX, startY, i, j).length == 2) return true;
+		}
+		for (let i = startX, j = startY; i > -1 && j > -1; i--, j--) {
+			if (validQueenMove(startX, startY, i, j).length == 2) return true;
+		}
+		return false;
+	}
+}
+
+function validMove(startX, startY, endX, endY) {
+	// console.log("validMove " + board[startY][startX] + " " + friendlyPieces[0] + " " + (board[startY][startX] == friendlyPieces[0]));
+	if (board[endY][endX] != 0) return false;
+	if (board[startY][startX] == friendlyPieces[0]) {
+		const allowedY = endY - startY == diffMoveY;
+		const allowedX = Math.abs(endX - startX) == 1;
+		// console.log("validMove " + (allowedY && allowedX));
+		return allowedY && allowedX;
+	} else {
+		return validQueenMove(startX, startY, endX, endY).length == 0;
+	}
 }
 
 function validEat(startX, startY, endX, endY) {
-	const enemyX = (startX + endX) / 2;
-	const enemyY = startY + diffEnemyY;
-	let allowedMove = false;
+	// console.log("validEat " + board[endY][endX] + " " + (board[endY][endX] != 0));
+	if (board[endY][endX] != 0) return [];
 
-	if (endY - startY != diffEatY || Math.abs(endX - startX) != 2) return false;
-	if (enemyPieces.includes(board[enemyY][enemyX])) {
-		board[enemyY][enemyX] = 0;
-		allowedMove = true;
+	if (board[startY][startX] == friendlyPieces[0]) {
+		const enemyX = (startX + endX) / 2;
+		const enemyY = startY + diffEnemyY;
+
+		// console.log("validEat " + (endY - startY == diffEatY && Math.abs(endX - startX) == 2 && enemyPieces.includes(board[enemyY][enemyX])));
+		if (endY - startY != diffEatY || Math.abs(endX - startX) != 2) 
+			return [];
+		if (enemyPieces.includes(board[enemyY][enemyX]))
+			return [enemyX, enemyY];
+	} else {
+		return validQueenMove(startX, startY, endX, endY);
 	}
 	
-	playerAte = allowedMove;
-	return allowedMove;
+	return [];
 }
 
 function validQueenMove(startX, startY, endX, endY) {
-	if (Math.abs(endX - startX) != Math.abs(endY - startY)) return false;
+	// console.log("validQueenMove " + endY + " " + endX);
+	if (board[endY][endX] != 0) return [-1];
+	if (Math.abs(endX - startX) != Math.abs(endY - startY)) return [-1];
 
 	let stepX = endX > startX ? 1 : -1;
 	let stepY = endY > startY ? 1 : -1;
@@ -116,23 +200,47 @@ function validQueenMove(startX, startY, endX, endY) {
 		startX += stepX;
 		startY += stepY;
 		if (enemyPieces.includes(board[startY][startX])) {
-			if (foundEnemy) return false;
+			if (foundEnemy) [-1];
 			foundEnemy = true;
 			enemyX = startX;
 			enemyY = startY;
 		}
-		if (friendlyPieces.includes(board[startY][startX])) return false;
+		if (friendlyPieces.includes(board[startY][startX])) 
+			return [-1];
 	}
 
-	if (foundEnemy) {
-		board[enemyY][enemyX] = 0;
-		playerAte = true;
-	}
+	if (foundEnemy) return [enemyX, enemyY];
 	
-	return true;
+	return [];
 }
 
 // TOOLS
+
+function rememberPiece(currX, currY) {
+	prevX = currX;
+	prevY = currY;
+	document.getElementById(`d${prevY}${prevX}`).style.background = "#006600";
+}
+
+function updateBoard(prevX, prevY, currX, currY) {
+	board[currY][currX] = currY == endLine ? friendlyPieces[1] : board[prevY][prevX];
+	board[prevY][prevX] = 0;
+	document.getElementById(`d${prevY}${prevX}`).style.background = "#2b002c";
+	setUpBoard();
+	socket.send(`board:${gameID}:${playerID}:${JSON.stringify(board)}`);
+}
+
+function finishMove() {
+	isHolding = false;
+	isPlayerTurn = false;
+	// check game status
+	if (hasUserWon()) {
+		socket.send(`exit:${gameID}:${playerID}:won`);
+		notify(`You won!`, false);
+	} else {
+		socket.send(`turn:${gameID}:${playerID}`);
+	}
+}
 
 function hasUserWon() {
 	for (let i = 0; i < 8; i++) {
@@ -152,7 +260,7 @@ function notify(msg, timeout) {
 }
 
 function setupPlayer(bitPlayer) {
-	playerTurn = bitPlayer; // makes bit_player go first
+	isPlayerTurn = bitPlayer; // makes bit_player go first
 	friendlyPieces = bitPlayer ? [1, 3] : [2, 4];
 	enemyPieces = bitPlayer ? [2, 4] : [1, 3];
 	diffMoveY = bitPlayer ? 1 : -1;
@@ -182,15 +290,15 @@ socket.onmessage = function(event) {
 		gameID = input[2];
 		socket.send(`registered:gid:${gameID}:pid:${playerID}`);
 		setUpBoard();
-		notify(`You are ${playerTurn ? "first, bitcoin!" : "second, dollar!"}`, true);
+		notify(`You are ${isPlayerTurn ? "first, bitcoin!" : "second, dollar!"}`, true);
 	} else if (input[0] == "board") {
 		board = JSON.parse(input[1]);
 		socket.send(`received:${gameID}:${playerID}`);
 		setUpBoard();
 	} else if (input[0] == "turn") {
-		playerTurn = true;
+		isPlayerTurn = true;
 	} else if (input[0] == "exit") {
-		playerTurn = false;
+		isPlayerTurn = false;
 		notify(`You ${input[1]}!`, false);
 	} else {
 		socket.send(`Invalid message sent to player ${playerID}: ${input}`);
