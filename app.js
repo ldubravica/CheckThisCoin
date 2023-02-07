@@ -59,10 +59,10 @@ function setUpGame() {
 	newGame.id = ++gameID;
 	newGame.players = [waitingPlayers.pop(), waitingPlayers.pop()];
 	currentGames.set(newGame.id, newGame);
-
+	
 	try {
-		newGame.players[0].send(`gid:bit:${newGame.id}`);
-		newGame.players[1].send(`gid:usd:${newGame.id}`);
+		newGame.players[0].send(`gid:usd:${newGame.id}:${JSON.stringify(newGame.board)}`);
+		newGame.players[1].send(`gid:bit:${newGame.id}:${JSON.stringify(inverseBoard(newGame.board))}`);
 	}
 	catch {
 		currentGames.delete(newGame.id);
@@ -76,12 +76,12 @@ function updateBoard(message) { // board:gid:pid:[[...]]
 	const currGame = currentGames.get(currGameID);
 	if (currGame == null) return;
 
-	currGame.board = JSON.parse(input[3])
+	const parsedBoard = JSON.parse(input[3]);
+	currGame.board = currGame.turn == 0 ? parsedBoard : inverseBoard(parsedBoard);
 	currentGames.set(currGameID, currGame);
 
-	// TODO: inverse the board depending on the currGame.turn
-
-	currGame.players[(currGame.turn + 1) % 2].send(`board:${JSON.stringify(currGame.board)}`);
+	const boardToSend = currGame.turn == 0 ? inverseBoard(currGame.board) : currGame.board;
+	currGame.players[(currGame.turn + 1) % 2].send(`board:${JSON.stringify(boardToSend)}`);
 }
 
 function updateTurn(message) { // turn:gid:pid
@@ -118,4 +118,18 @@ function exitGame(message, ws) { // exit:gid:pid:won/left
 	currGame.players[(currGame.turn + 1) % 2].send(`exit:${nextPlayerStatus}`);
 
 	currentGames.delete(currGameID);
+}
+
+// TOOLS
+
+function inverseBoard(oldBoard) {
+	let newBoard = [];
+	for (let i = oldBoard.length - 1; i >= 0; i--) {
+		let newRow = [];
+		for (let j = oldBoard[i].length - 1; j >= 0; j--) {
+			newRow.push(oldBoard[i][j]);
+		}
+		newBoard.push(newRow);
+	}
+	return newBoard;
 }
