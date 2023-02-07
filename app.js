@@ -1,68 +1,51 @@
-var express = require("express");
-var http = require("http");
-var websocket = require("ws");
+const express = require("express");
+const http = require("http");
+const websocket = require("ws");
 
-var splash = false;
+let currentGames = new Map();
+let waitingPlayers = [];
+let playerID = 99;
+let gameID = 99;
 
-// setting the core
-var currentGames = [];
-var waitingPlayers = [];
-var playerid = 0; // try: removing or renaming to sessionID which stays across both splash and game screen
-var gameid = 0;
-
-function Game() {
-	var id = -1;
-	var player1 = -1; // set to ws
-	var player2 = -1; // set to ws
-	var board = "1010101001010101101010100000000000000000020202022020202002020202"; 
-	var turn = 1; // when set to 0, game is loading
+class Game {
+	constructor() {
+		this.id = -1;
+		this.players = [];
+		this.turn = 0;
+		this.board = [[1,0,1,0,1,0,1,0],[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0],[0,0,0,0,0,0,0,0],
+					  [0,0,0,0,0,0,0,0],[0,2,0,2,0,2,0,2],[2,0,2,0,2,0,2,0],[0,2,0,2,0,2,0,2]];
+	}
 }
 
-var port = process.argv[2];
-var app = express();
+const port = process.argv[2];
+const app = express();
 
 app.use(express.static(__dirname + "/public"));
 
-var server = http.createServer(app);
-
+const server = http.createServer(app);
 const wss = new websocket.Server({ server });
 
 wss.on("connection", function(ws) {
 
-	// WARM UP
-
-	console.log("[SER] server ready");
-
-	// SET UP CLIENT
-	ws.send("playerid:" + ((playerid % 2) + 1));
-	waitingPlayers.unshift(ws);
-	playerid++;
-	
-	// SET UP GAME
-
     ws.on("message", function incoming(message) {
-		console.log("[CLI] " + message);
-		if(message == "splash:info") {
-			playerid--;
-			waitingPlayers.shift();
-			console.log("[SER] player " + playerid + " deregistered due to splash");
-			ws.send(currentGames.length);
-		}
-		else if (message.startsWith("registered:")) {
+		console.log(`[CLI] ${message}`);
+		if (message == "screen:splash") { // screen:splash
+			ws.send(currentGames.size);
+		} else if (message == "screen:game") { // screen:game
+			ws.send(`pid:${++playerID}`);
+			waitingPlayers.unshift(ws);
 			setUpGame();
-		}
-		// UPDATE BOARD
-		else if (message.startsWith("board:")) { // board:3:1:1010...0202
+		} else if (message.startsWith("board:")) { // board:gid:pid:[[...]]
 			updateBoard(message);
-		}
-		// EXIT
-		else if (message.startsWith("exit:")) { // exit:3:2
-			exitGame(message, ws);
+		} else if (message.startsWith("turn:")) { // turn:gid:pid
+			updateTurn(message);
+		} else if (message.startsWith("exit:")) { // exit:gid:pid:won/left
+			exitGame(message, null);
 		}
 	});
 
 	ws.on("close", function() {
-		exitGame("exit:0:0", ws);
+		exitGame("exit:-1:-1:left", ws);
 	});
 
 });
@@ -72,65 +55,81 @@ server.listen(port);
 function setUpGame() {
 	if (waitingPlayers.length < 2) return;
 
-	var newGame = new Game();
-	newGame.id = gameid++; // not tested: ++
-	newGame.player1 = waitingPlayers.pop();
-	newGame.player2 = waitingPlayers.pop();
-	currentGames.push(newGame);
-
-	try{
-		newGame.player1.send("gameid:" + "bit:" + newGame.id);
-		newGame.player2.send("gameid:" + "usd:" + newGame.id);
+	const newGame = new Game();
+	newGame.id = ++gameID;
+	newGame.players = [waitingPlayers.pop(), waitingPlayers.pop()];
+	currentGames.set(newGame.id, newGame);
+	
+	try {
+		newGame.players[0].send(`gid:usd:${newGame.id}:${JSON.stringify(newGame.board)}`);
+		newGame.players[1].send(`gid:bit:${newGame.id}:${JSON.stringify(inverseBoard(newGame.board))}`);
 	}
 	catch {
-		exitGame("exit:0");
+		currentGames.delete(newGame.id);
 	}
 }
 
-function updateBoard(message) {  // board:3:1:1010...0202
-	var input = message.split(":");
-	var temp_gameid = input[1];
-	var temp_playerid = input[2];
-	var next_playerid = (temp_playerid == 1) ? 2 : 1;
-	var temp_board = input[3];
-	var pos = -1;
-
-	for (let i = 0; i < currentGames.length; i++) {
-		if (currentGames[i].id == temp_gameid) {
-			pos = i;
-			i = currentGames.length;
-		}
-	}
-
-	currentGames[pos].board = temp_board;
-	currentGames[pos].turn = next_playerid;
-	currentGames[pos]["player" + next_playerid].send("board:" + currentGames[pos].board);
-}
-
-function exitGame(message, ws) {
-	var input = message.split(":");
+function updateBoard(message) { // board:gid:pid:[[...]]
+	const input = message.split(":");
+	const currGameID = parseInt(input[1]);
 	
-	for (let i = 0; i < currentGames.length; i++) {
-		if (currentGames[i].id == input[1]) {
-			if (input[2] == 0) {
-				input[2] = ws == currentGames[i].player1 ? 1 : 2; 
+	const currGame = currentGames.get(currGameID);
+	if (currGame == null) return;
+
+	const parsedBoard = JSON.parse(input[3]);
+	currGame.board = currGame.turn == 0 ? parsedBoard : inverseBoard(parsedBoard);
+	currentGames.set(currGameID, currGame);
+
+	const boardToSend = currGame.turn == 0 ? inverseBoard(currGame.board) : currGame.board;
+	currGame.players[(currGame.turn + 1) % 2].send(`board:${JSON.stringify(boardToSend)}`);
+}
+
+function updateTurn(message) { // turn:gid:pid
+	const input = message.split(":");
+	const currGameID = parseInt(input[1]);
+	
+	const currGame = currentGames.get(currGameID);
+	currGame.turn = (currGame.turn + 1) % 2;
+	currentGames.set(currGameID, currGame);
+
+	currGame.players[currGame.turn].send(`turn:${currGame.turn}`);
+}
+
+function exitGame(message, ws) { // exit:gid:pid:won/left
+	const input = message.split(":");
+	let currGameID = parseInt(input[1]);
+
+	if (currGameID == -1) {
+		for (const pair of currentGames.entries()) {
+			const key = pair[0];
+			const value = pair[1];
+
+			if (value.players.includes(ws)) {
+				currGameID = key;
+				break;
 			}
-
-			var contact = currentGames[i]["player" + (input[2] == 1 ? 2 : 1)];
-			if (contact != -1) contact.send("exit:" + input[1]);
-
-			currentGames[i].player1 = -1;
-			currentGames[i].player2 = -1;
-
-			if (i == currentGames.length - 1) {
-				currentGames.pop();
-			}
-			else {
-				currentGames[i] = currentGames[currentGames.length - 1];
-				currentGames.pop();
-			}
-
-			return;
 		}
+	} 
+
+	const currGame = currentGames.get(currGameID);
+	if (currGame == null) return;
+
+	const nextPlayerStatus = input[3] == "won" ? "lost" : "won";
+	currGame.players[(currGame.turn + 1) % 2].send(`exit:${nextPlayerStatus}`);
+
+	currentGames.delete(currGameID);
+}
+
+// TOOLS
+
+function inverseBoard(oldBoard) {
+	let newBoard = [];
+	for (let i = oldBoard.length - 1; i >= 0; i--) {
+		let newRow = [];
+		for (let j = oldBoard[i].length - 1; j >= 0; j--) {
+			newRow.push(oldBoard[i][j]);
+		}
+		newBoard.push(newRow);
 	}
+	return newBoard;
 }
